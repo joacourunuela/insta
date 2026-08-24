@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E1220">
+<title>Pase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --noche:#0E1220;
+    --carta:#161B2E;
+    --lampara:#F2A93B;
+    --palido:#C9C4D6;
+    --tenue:#6B6880;
+    --salvia:#7FB09A;
+    --serif:"Instrument Serif",Georgia,serif;
+    --mono:"Space Mono",ui-monospace,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0}
+  body{
+    min-height:100dvh;
+    background:var(--noche);
+    background-image:radial-gradient(ellipse 120% 60% at 50% -8%,#232A48 0%,transparent 62%);
+    color:var(--palido);font-family:var(--sans);
+    padding:max(20px,env(safe-area-inset-top)) 18px calc(28px + env(safe-area-inset-bottom));
+    display:flex;flex-direction:column;gap:22px;
+  }
+
+  .eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--tenue)}
+  .eyebrow b{color:var(--lampara);font-weight:400}
+
+  /* ── el pase ── */
+  .pase{
+    background:var(--carta);
+    border:1px solid rgba(242,169,59,.16);
+    border-radius:4px;padding:22px 20px 0;
+    transition:opacity .32s ease,transform .32s ease;
+  }
+  .pase.rota{opacity:0;transform:translateY(-14px)}
+  .pase__head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+
+  .ask{
+    font-family:var(--serif);font-style:italic;font-weight:400;
+    font-size:clamp(2.1rem,10vw,2.9rem);line-height:1.05;
+    margin:18px 0 20px;color:#fff;
+  }
+  .intent{
+    width:100%;background:transparent;border:0;border-bottom:1px solid var(--tenue);
+    color:#fff;font-family:var(--sans);font-size:17px;padding:8px 0 10px;
+  }
+  .intent:focus{outline:0;border-bottom-color:var(--lampara)}
+  .intent::placeholder{color:var(--tenue)}
+  .hint{font-family:var(--mono);font-size:11px;color:var(--tenue);margin:10px 0 0;min-height:1.3em}
+  .hint.ok{color:var(--salvia)}
+
+  /* perforación: la línea por donde se corta el pase */
+  .perf{position:relative;height:26px;margin:20px -20px 0}
+  .perf::before{
+    content:"";position:absolute;top:50%;left:14px;right:14px;
+    border-top:1px dashed rgba(201,196,214,.28);
+  }
+  .perf i{position:absolute;top:50%;width:16px;height:16px;border-radius:50%;
+    background:var(--noche);transform:translateY(-50%)}
+  .perf i:first-child{left:-8px}
+  .perf i:last-child{right:-8px}
+
+  /* ── destinos ── */
+  .dest{display:flex;flex-direction:column;gap:8px;padding:0 0 20px}
+  .chip{
+    position:relative;overflow:hidden;
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    background:rgba(255,255,255,.03);border:1px solid rgba(201,196,214,.14);
+    border-radius:3px;padding:14px 15px;color:var(--palido);
+    font-size:16px;text-align:left;cursor:pointer;
+    transition:opacity .2s;
+  }
+  .chip span{position:relative;z-index:1}
+  .chip .cuenta{font-family:var(--mono);font-size:11px;color:var(--tenue)}
+  .chip::after{
+    content:"";position:absolute;inset:0 100% 0 0;background:rgba(242,169,59,.22);
+    transition:right .05s linear;
+  }
+  .chip.cargando::after{right:0;transition:right 1.6s linear}
+  .dest[data-listo="no"] .chip{opacity:.32;pointer-events:none}
+
+  .nota{font-family:var(--mono);font-size:11px;color:var(--tenue);margin:0;text-align:center}
+
+  /* ── registro ── */
+  .ledger h2{font-family:var(--mono);font-size:10px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--tenue);font-weight:400;margin:0 0 12px}
+  .ledger ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px}
+  .ledger li{display:flex;gap:12px;font-size:14px;line-height:1.35;
+    padding-bottom:11px;border-bottom:1px solid rgba(201,196,214,.07)}
+  .ledger li:last-child{border:0}
+  .hora{font-family:var(--mono);font-size:11px;color:var(--lampara);padding-top:2px;flex:none}
+  .dur{font-family:var(--mono);font-size:11px;color:var(--tenue);display:block;margin-top:3px}
+  .vacio{font-size:14px;color:var(--tenue);margin:0}
+
+  .link{background:0;border:0;color:var(--tenue);font-family:var(--mono);
+    font-size:11px;text-decoration:underline;padding:6px;cursor:pointer}
+  .fila{display:flex;justify-content:center;gap:18px;margin-top:auto;padding-top:8px}
+
+  /* ── editor ── */
+  .editor{display:none;background:var(--carta);border:1px solid rgba(201,196,214,.14);
+    border-radius:4px;padding:18px}
+  .editor.abierto{display:block}
+  .editor p{font-size:13px;color:var(--tenue);margin:0 0 12px;line-height:1.5}
+  .editor textarea{width:100%;min-height:150px;background:var(--noche);color:var(--palido);
+    border:1px solid rgba(201,196,214,.16);border-radius:3px;padding:12px;
+    font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical}
+  .editor button{margin-top:12px;background:var(--lampara);color:var(--noche);border:0;
+    border-radius:3px;padding:12px 20px;font-weight:700;font-size:14px;cursor:pointer}
+
+  :focus-visible{outline:2px solid var(--lampara);outline-offset:2px}
+  @media (prefers-reduced-motion:reduce){
+    *{transition-duration:.01ms !important}
+    .chip.cargando::after{transition-duration:1.6s !important}
+  }
+</style>
+</head>
+<body>
+
+<div class="pase" id="pase">
+  <div class="pase__head">
+    <span class="eyebrow">Pase de acceso</span>
+    <span class="eyebrow" id="contador"></span>
+  </div>
+
+  <h1 class="ask">¿A qué venís?</h1>
+  <input class="intent" id="intent" placeholder="decilo en una línea" autocomplete="off" enterkeyhint="done">
+  <p class="hint" id="hint">Escribí al menos 10 caracteres.</p>
+
+  <div class="perf"><i></i><i></i></div>
+
+  <div class="dest" id="dest" data-listo="no"></div>
+  <p class="nota" style="padding-bottom:18px">Mantené presionado para abrir</p>
+</div>
+
+<section class="ledger">
+  <h2 id="tituloLog">Hoy</h2>
+  <ol id="log"></ol>
+  <p class="vacio" id="vacio">Todavía no entraste hoy.</p>
+</section>
+
+<div class="editor" id="editor">
+  <p>Un destino por línea: <b>Etiqueta = usuario</b>. Para los feeds filtrados
+  usá <b>?variant=following</b> o <b>?variant=favorites</b>.</p>
+  <textarea id="txt" spellcheck="false"></textarea>
+  <button id="guardar">Guardar destinos</button>
+</div>
+
+<div class="fila">
+  <button class="link" id="btnEditar">Editar destinos</button>
+  <button class="link" id="btnBorrar">Borrar registro</button>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  var MIN = 10;          // caracteres mínimos de la intención
+  var HOLD = 1600;       // ms que hay que sostener el destino
+  var K = 'pase.v1';
+  var TOPE = 0;          // 0 = sin tope. Poné 3 y avisa a partir de la cuarta.
+
+  var mem = {};
+  var store = {
+    get: function(k){ try { return localStorage.getItem(k); } catch(e){ return mem[k]||null; } },
+    set: function(k,v){ try { localStorage.setItem(k,v); } catch(e){ mem[k]=v; } }
+  };
+
+  var estado = cargar();
+
+  function cargar(){
+    var d = { destinos:[
+      {etiqueta:'Siguiendo', cuenta:'?variant=following'},
+      {etiqueta:'Favoritos', cuenta:'?variant=favorites'},
+      {etiqueta:'Mensajes',  cuenta:'direct/inbox/'}
+    ], entradas:[] };
+    try { var raw = store.get(K); if(raw) d = Object.assign(d, JSON.parse(raw)); } catch(e){}
+    return d;
+  }
+  function guardar(){ store.set(K, JSON.stringify(estado)); }
+
+  function hoy(){ var n=new Date(); return n.getFullYear()+'-'+(n.getMonth()+1)+'-'+n.getDate(); }
+  function hora(ts){ var d=new Date(ts);
+    return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+  function deHoy(){ var h=hoy(); return estado.entradas.filter(function(e){ return e.dia===h; }); }
+
+  /* Al volver: cierro la entrada que quedó abierta y calculo cuánto estuviste. */
+  (function cerrarPendiente(){
+    var abierta = estado.entradas.filter(function(e){ return !e.cerrada; }).pop();
+    if(!abierta) return;
+    var min = Math.round((Date.now() - abierta.ts)/60000);
+    abierta.cerrada = true;
+    abierta.min = min > 720 ? null : min;   // más de 12h = no volviste, no cuenta
+    guardar();
+  })();
+
+  /* ── destinos ── */
+  var dest = document.getElementById('dest');
+
+  function pintarDestinos(){
+    dest.innerHTML = '';
+    estado.destinos.forEach(function(d){
+      var b = document.createElement('button');
+      b.className = 'chip';
+      b.innerHTML = '<span>'+esc(d.etiqueta)+'</span><span class="cuenta">@'+esc(d.cuenta)+'</span>';
+      atarHold(b, d);
+      dest.appendChild(b);
+    });
+  }
+
+  function atarHold(btn, d){
+    var t = null;
+    function arrancar(ev){
+      ev.preventDefault();
+      btn.classList.add('cargando');
+      t = setTimeout(function(){ abrir(d); }, HOLD);
+    }
+    function soltar(){
+      clearTimeout(t);
+      btn.classList.remove('cargando');
+    }
+    btn.addEventListener('pointerdown', arrancar);
+    ['pointerup','pointerleave','pointercancel'].forEach(function(e){
+      btn.addEventListener(e, soltar);
+    });
+  }
+
+  // Un destino puede ser: un feed (?variant=...), una ruta (direct/inbox/)
+  // o simplemente un usuario (paengineer).
+  function urlDe(c){
+    var base = 'https://www.instagram.com/';
+    if(c.charAt(0) === '?') return base + c;
+    if(c.indexOf('/') !== -1) return base + c.replace(/^\//,'');
+    return base + encodeURIComponent(c.replace(/^@/,'')) + '/';
+  }
+
+  function abrir(d){
+    if(TOPE && deHoy().length >= TOPE){
+      if(!confirm('Ya entraste ' + deHoy().length + ' veces hoy. ¿Seguro?')) return;
+    }
+    var intent = document.getElementById('intent').value.trim();
+    estado.entradas.push({
+      dia: hoy(), ts: Date.now(), intent: intent,
+      etiqueta: d.etiqueta, cuenta: d.cuenta, cerrada: false
+    });
+    guardar();
+    document.getElementById('pase').classList.add('rota');
+    setTimeout(function(){
+      location.href = urlDe(d.cuenta);
+    }, 320);
+  }
+
+  /* ── intención ── */
+  var intent = document.getElementById('intent');
+  var hint = document.getElementById('hint');
+
+  intent.addEventListener('input', function(){
+    var n = intent.value.trim().length;
+    if(n >= MIN){
+      dest.dataset.listo = 'si';
+      hint.textContent = 'Listo. Elegí a dónde vas.';
+      hint.classList.add('ok');
+    } else {
+      dest.dataset.listo = 'no';
+      hint.textContent = 'Faltan ' + (MIN-n) + ' caracteres.';
+      hint.classList.remove('ok');
+    }
+  });
+
+  /* ── registro ── */
+  function pintarLog(){
+    var e = deHoy();
+    var ol = document.getElementById('log');
+    var vacio = document.getElementById('vacio');
+    document.getElementById('contador').innerHTML =
+      hora(Date.now()) + ' · entrada <b>' + (e.length + 1) + '</b> de hoy';
+
+    ol.innerHTML = '';
+    vacio.style.display = e.length ? 'none' : 'block';
+
+    e.slice().reverse().forEach(function(x){
+      var li = document.createElement('li');
+      var d = x.min == null ? '' : '<span class="dur">' + x.min + ' min adentro</span>';
+      li.innerHTML = '<span class="hora">'+hora(x.ts)+'</span>' +
+        '<span>'+esc(x.intent || '—')+'<span class="dur">→ @'+esc(x.cuenta)+'</span>'+d+'</span>';
+      ol.appendChild(li);
+    });
+  }
+
+  function esc(s){ return String(s).replace(/[<>&"]/g, function(c){
+    return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]; }); }
+
+  /* ── editor ── */
+  var editor = document.getElementById('editor');
+  document.getElementById('btnEditar').addEventListener('click', function(){
+    editor.classList.toggle('abierto');
+    document.getElementById('txt').value = estado.destinos.map(function(d){
+      return d.etiqueta + ' = ' + d.cuenta; }).join('\n');
+  });
+
+  document.getElementById('guardar').addEventListener('click', function(){
+    var lineas = document.getElementById('txt').value.split('\n');
+    var out = [];
+    lineas.forEach(function(l){
+      var p = l.split('=');
+      if(p.length < 2) return;
+      var et = p[0].trim(), cu = p[1].trim().replace(/^@/,'').replace(/\/$/,'');
+      if(et && cu) out.push({etiqueta:et, cuenta:cu});
+    });
+    if(out.length){ estado.destinos = out; guardar(); pintarDestinos(); }
+    editor.classList.remove('abierto');
+  });
+
+  document.getElementById('btnBorrar').addEventListener('click', function(){
+    if(confirm('¿Borrar el registro de hoy y los días anteriores?')){
+      estado.entradas = []; guardar(); pintarLog();
+    }
+  });
+
+  pintarDestinos();
+  pintarLog();
+})();
+</script>
+</body>
+</html>
