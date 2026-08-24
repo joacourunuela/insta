@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#0E1220"/>
+
+  <!-- el ticket: panel suave que le da algo donde morder al troquel -->
+  <rect x="56" y="96" width="400" height="320" rx="16" fill="#161B2E"/>
+  <circle cx="56"  cy="256" r="34" fill="#0E1220"/>
+  <circle cx="456" cy="256" r="34" fill="#0E1220"/>
+
+  <!-- lineas de corte -->
+  <line x1="104" y1="152" x2="408" y2="152"
+        stroke="#F2A93B" stroke-width="9" stroke-dasharray="18 16" opacity="0.5"/>
+  <line x1="104" y1="360" x2="408" y2="360"
+        stroke="#F2A93B" stroke-width="9" stroke-dasharray="18 16" opacity="0.5"/>
+
+  <!-- lente -->
+  <circle cx="256" cy="256" r="72" fill="none" stroke="#F2A93B" stroke-width="16"/>
+  <circle cx="256" cy="256" r="30" fill="#C9C4D6"/>
+
+  <!-- puntito -->
+  <circle cx="366" cy="196" r="15" fill="#F2A93B"/>
+</svg>
